@@ -1,36 +1,72 @@
 import tkinter as tk
-from tkinter import simpledialog, messagebox
+from tkinter import simpledialog, messagebox, PhotoImage
 from include.button_hover import on_enter, on_leave
 from include.frame_hover import frame_selected, frame_enter, frame_leave
-import json  # Add this import for JSON handling
+import os
+import json
 
 class DevicesContent:
     def __init__(self, parent):
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        icon_dir = os.path.join(current_dir, "assets", "icons")
+
         self.frame = tk.Frame(parent, bg='white')
-        self.frame.pack(pady=10, fill=tk.BOTH, expand=True)
+        self.frame.pack(fill=tk.BOTH, expand=True)
+        self.frame.grid_columnconfigure(0, weight=1)
+        self.frame.grid_columnconfigure(1, weight=1)
+        # self.frame.pack(pady=10)
+
+        l_frame = tk.Frame(self.frame, bg='white')
+        l_frame.grid(row=0, padx=(0, 10), pady=10, column=0, sticky='nsew')
+        r_frame = tk.Frame(self.frame, bg='white')
+        r_frame.grid(row=0, pady=10, column=1, sticky='nsew')
 
         # Create and configure content label
-        self.content_label = tk.Label(self.frame, text="Devices", font=("Segoe UI", 24), anchor='w', bg='white')
+        self.content_label = tk.Label(l_frame, text="Devices", font=("Segoe UI", 24), anchor='w', bg='white')
         self.content_label.pack(pady=10, anchor='w')
 
-        # Add buttons inline with commands to open dialog and reload data
-        button_frame = tk.Frame(self.frame, bg='white')
-        button_frame.pack(pady=10, fill=tk.X)
+        self.add_icon = PhotoImage(file=os.path.join(icon_dir, "add-solid-36.png"))
+        self.add_button = tk.Button(
+            l_frame,
+            padx=10,
+            pady=10,
+            anchor='w',
+            justify='left',
+            image=self.add_icon,
+            compound=tk.LEFT,
+            text="Add Device\nSee IP Address on device Settings",
+            bg='white',
+            relief=tk.FLAT,
+            font=('Segoe UI', 10),
+            command=self.open_dialog
+        )
+        self.add_button.pack(pady=5, fill=tk.X)
 
-        self.add_button = tk.Button(button_frame, padx=10, pady=2, text="Add", bg='lightgray', relief=tk.FLAT, font=('Segoe UI', 10), command=self.open_dialog)
-        self.reload_button = tk.Button(button_frame, padx=10, pady=2, text="Reload", bg='lightgray', relief=tk.FLAT, font=('Segoe UI', 10), command=self.load_data)
-        self.add_button.pack(side=tk.LEFT, padx=(0, 5))
-        self.reload_button.pack(side=tk.LEFT, padx=5)
+        self.reload_icon = PhotoImage(file=os.path.join(icon_dir, "refresh-solid-36.png"))
+        self.reload_button = tk.Button(
+            l_frame,
+            padx=10,
+            pady=10,
+            anchor='w',
+            justify='left',
+            image=self.reload_icon,
+            compound=tk.LEFT,
+            text="Reload",
+            bg='white',
+            relief=tk.FLAT,
+            font=('Segoe UI', 10),
+            command=self.load_data
+        )
+        self.reload_button.pack(pady=5, fill=tk.X)
 
-        self.add_button.bind("<Enter>", on_enter)
-        self.add_button.bind("<Leave>", on_leave)
-        self.reload_button.bind("<Enter>", on_enter)
-        self.reload_button.bind("<Leave>", on_leave)
+        self.add_button.bind("<Enter>", lambda e: on_enter(e, color='#f1f2f3'))
+        self.add_button.bind("<Leave>", lambda e: on_leave(e, color='white'))
+        self.reload_button.bind("<Enter>", lambda e: on_enter(e, color='#f1f2f3'))
+        self.reload_button.bind("<Leave>", lambda e: on_leave(e, color='white'))
 
         # Create a new frame for the data list
-        self.list_frame = tk.Frame(self.frame, bg='white', width=450)
-        self.list_frame.pack(side=tk.LEFT, fill=tk.Y)
-        self.list_frame.pack_propagate(False)
+        self.list_frame = tk.Frame(l_frame, bg='white')
+        self.list_frame.pack(fill=tk.X)
 
         self.load_data()
 
@@ -60,11 +96,19 @@ class DevicesContent:
                 response_json = json.load(file)  # Load JSON data
                 data = response_json.get('address', [])  # Get the 'address' field
                 self.default_address = response_json.get('default', None)  # Store the default address
-
+            
             # Clear existing list data
             for widget in self.list_frame.winfo_children():
                 widget.destroy()
-
+            
+            item_count_label = tk.Label(
+                self.list_frame,
+                text=str(len(data))+' devices found',
+                font=('Segoe UI', 14),
+                bg='white',
+                anchor='w'
+            )
+            item_count_label.pack(pady=(20, 5), fill=tk.X)
             # Populate the list with data
             for list_index, address in enumerate(data):
                 item_frame = tk.Frame(self.list_frame, bg='white')
@@ -76,7 +120,7 @@ class DevicesContent:
                     text=address+' (default)' if address == self.default_address else address,
                     font=('Segoe UI', 10),
                     bg='white',
-                    anchor='w',
+                    anchor='w'
                 )
                 data_label.pack(fill=tk.X)
                 data_label.bind('<Enter>', frame_enter)
@@ -250,7 +294,7 @@ class DevicesContent:
         """Open dialog for creating or updating an entry."""
         # Create a new top-level window for the dialog
         dialog = tk.Toplevel(self.frame, padx=10, bg='white')
-        dialog.title("Add Address")
+        dialog.title("Add New Device")
 
         # Set minimum width and height
         dialog.minsize(width=300, height=150)  # Minimum width of 300 pixels
@@ -258,7 +302,7 @@ class DevicesContent:
         # Center the dialog on the parent window
         self.center_dialog(dialog)
 
-        address_label = tk.Label(dialog, text="Address", font=('Segoe UI', 10), bg='white')
+        address_label = tk.Label(dialog, text="IP Address", font=('Segoe UI', 10), bg='white')
         address_label.pack(pady=(10, 0), anchor='w')
         address_frame = tk.Frame(dialog, highlightthickness=1, bg='white')
         address_frame.config(highlightbackground='darkgray', highlightcolor='darkgray')
@@ -270,8 +314,20 @@ class DevicesContent:
         if address:
             address_entry.insert(0, address)
 
-        tk.Button(dialog, padx=10, pady=5, bg='lightgray', font=('Segoe UI', 10), text="Submit", command=lambda: self.submit(address_entry.get(), dialog, address), relief=tk.FLAT).pack(side=tk.LEFT)  # Submit button on the left
-        tk.Button(dialog, padx=10, pady=5, bg='lightgray', font=('Segoe UI', 10), text="Cancel", command=dialog.destroy, relief=tk.FLAT).pack(side=tk.RIGHT, padx=(5, 0))  # Cancel button on the right
+        button_frame = tk.Frame(dialog, bg='white')
+        button_frame.pack(pady=10, fill=tk.X, side=tk.BOTTOM)
+        button_frame.grid_columnconfigure(0, weight=1)
+        button_frame.grid_columnconfigure(1, weight=1)
+
+        submit_button = tk.Button(button_frame, padx=10, pady=5, bg='lightgray', font=('Segoe UI', 10), text="Submit", command=lambda: self.submit(address_entry.get(), dialog, address), relief=tk.FLAT)
+        submit_button.grid(padx=(0, 5), row=0, column=0, sticky='ew')
+        submit_button.bind("<Enter>", on_enter)
+        submit_button.bind("<Leave>", on_leave)
+        
+        cancel_button = tk.Button(button_frame, padx=10, pady=5, bg='lightgray', font=('Segoe UI', 10), text="Cancel", command=dialog.destroy, relief=tk.FLAT)
+        cancel_button.grid(padx=(5, 0), row=0, column=1, sticky='ew')
+        cancel_button.bind("<Enter>", on_enter)
+        cancel_button.bind("<Leave>", on_leave)
 
     def submit(self, address, dialog, entry=None):
         """Handle the submission logic here."""
