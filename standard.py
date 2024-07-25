@@ -1,8 +1,10 @@
 import tkinter as tk
-from tkinter import simpledialog, messagebox
+from tkinter import simpledialog, messagebox, PhotoImage
 from include.button_hover import on_enter, on_leave
+from include.frame_hover import frame_selected, frame_enter, frame_leave
 import requests
 import os
+import json
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -10,85 +12,151 @@ load_dotenv()
 
 class StandardContent:
     def __init__(self, parent):
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        icon_dir = os.path.join(current_dir, "assets", "icons")
+
         self.frame = tk.Frame(parent, bg='white')
-        self.frame.pack(pady=10, fill=tk.X)
+        self.frame.pack(fill=tk.BOTH, expand=True)
+        self.frame.grid_columnconfigure(0, weight=1)
+        self.frame.grid_columnconfigure(1, weight=1)
+
+        l_frame = tk.Frame(self.frame, bg='white')
+        l_frame.grid(row=0, padx=(0, 10), pady=10, column=0, sticky='nsew')
+        r_frame = tk.Frame(self.frame, bg='white')
+        r_frame.grid(row=0, pady=10, column=1, sticky='nsew')
 
         # Create and configure content label
-        self.content_label = tk.Label(self.frame, text="Part Standard", font=("Segoe UI", 24), anchor='w', bg='white')
+        self.content_label = tk.Label(l_frame, text="Part Standards", font=("Segoe UI", 24), anchor='w', bg='white')
         self.content_label.pack(pady=10, anchor='w')
 
-        # Add buttons inline with commands to open dialog and reload data
-        button_frame = tk.Frame(self.frame, bg='white')
-        button_frame.pack(pady=10, fill=tk.X)
+        self.add_icon = PhotoImage(file=os.path.join(icon_dir, "add-solid-36.png"))
+        self.add_button = tk.Button(
+            l_frame,
+            padx=10,
+            pady=10,
+            anchor='w',
+            justify='left',
+            image=self.add_icon,
+            compound=tk.LEFT,
+            text="Add Standard",
+            bg='white',
+            relief=tk.FLAT,
+            font=('Segoe UI', 10),
+            command=self.open_dialog
+        )
+        self.add_button.pack(pady=5, fill=tk.X)
 
-        self.add_button = tk.Button(button_frame, padx=10, pady=5, text="Add", bg='lightgray', relief=tk.FLAT, font=('Segoe UI', 10), command=self.open_dialog)
-        self.reload_button = tk.Button(button_frame, padx=10, pady=5, text="Reload", bg='lightgray', relief=tk.FLAT, font=('Segoe UI', 10), command=self.load_data)
-        self.add_button.pack(side=tk.LEFT, padx=(0, 5))
-        self.reload_button.pack(side=tk.LEFT, padx=5)
-        self.add_button.bind("<Enter>", on_enter)
-        self.add_button.bind("<Leave>", on_leave)
-        self.reload_button.bind("<Enter>", on_enter)
-        self.reload_button.bind("<Leave>", on_leave)
+        self.reload_icon = PhotoImage(file=os.path.join(icon_dir, "refresh-solid-36.png"))
+        self.reload_button = tk.Button(
+            l_frame,
+            padx=10,
+            pady=10,
+            anchor='w',
+            justify='left',
+            image=self.reload_icon,
+            compound=tk.LEFT,
+            text="Reload",
+            bg='white',
+            relief=tk.FLAT,
+            font=('Segoe UI', 10),
+            command=self.load_data
+        )
+        self.reload_button.pack(pady=5, fill=tk.X)
 
-        # Create a new frame for the data table
-        self.table_frame = tk.Frame(self.frame)
-        self.table_frame.pack(pady=10, fill=tk.X)  # Allow the table frame to expand only in width
+        self.add_button.bind("<Enter>", lambda e: on_enter(e, color='#f1f2f3'))
+        self.add_button.bind("<Leave>", lambda e: on_leave(e, color='white'))
+        self.reload_button.bind("<Enter>", lambda e: on_enter(e, color='#f1f2f3'))
+        self.reload_button.bind("<Leave>", lambda e: on_leave(e, color='white'))
 
-        # Create table headers
-        self.headers = ["ID", "Part Number", "Standard", "Unit", "Action"]
-        for col in range(len(self.headers)):
-            header_label = tk.Label(self.table_frame, text=self.headers[col], borderwidth=0, font=('Segoe UI', 10, 'bold'), bg='#007bff', fg='white', padx=20 if (col == 0 or col == len(self.headers) - 1) else 0, pady=10)
-            header_label.grid(row=0, column=col, sticky="nsew", padx=(0, 1))
-        
-        # Configure grid weights for proper resizing
-        for col in range(len(self.headers) - 1):
-            self.table_frame.grid_columnconfigure(col, weight=0 if col == 0 else 1)  # Prevent the first columns to expand
-        
-        self.table_frame.grid_columnconfigure(len(self.headers) - 1, weight=0)  # Prevent the last column to expand
-        
-        # Load initial data from API
+        # Create a new frame for the data list
+        self.list_frame = tk.Frame(l_frame, bg='white')
+        self.list_frame.pack(fill=tk.X)
+
         self.load_data()
     
     def load_data(self):
         """Fetch data from API and populate the table."""
-        api_url = f"{os.getenv('API_BASE_URL')}/parts"  # Replace with your actual API endpoint
         try:
-            response = requests.get(api_url)
-            response.raise_for_status()  # Raise an error for bad responses
-            
-            # Parse the response JSON
-            response_json = response.json()  # Assuming the response is in JSON format
-            data = response_json.get('data', [])  # Get the 'data' field, default to an empty list if not found
+            with open('config.json', 'r') as file:
+                json_data = json.load(file)
+                base_api_url = json_data.get('default', None)
 
-            # Clear existing table data
-            for widget in self.table_frame.winfo_children():
-                if widget.grid_info()['row'] > 0:
+                response = requests.get(f"http://{base_api_url}/parts")
+                response.raise_for_status()  # Raise an error for bad responses
+            
+                # Parse the response JSON
+                response_json = response.json()  # Assuming the response is in JSON format
+                data = response_json.get('data', [])  # Get the 'data' field, default to an empty list if not found
+
+                # Clear existing table data
+                for widget in self.list_frame.winfo_children():
                     widget.destroy()
 
-            # Populate the table with data
-            for row_index, row in enumerate(data):
-                values = [row['id'], row['name'], row['std'], row['unit']]
-                for col_index, value in enumerate(values):
-                    data_label = tk.Label(self.table_frame, text=(row_index + 1) if col_index == 0 else value, borderwidth=0, font=('Segoe UI', 10), bg='#eaebec' if row_index % 2 == 0 else '#f5f6f7', padx=20 if col_index == 0 else 0, pady=10)
-                    data_label.grid(row=row_index + 1, column=col_index, sticky="nsew", padx=(0, 1))
+                item_count_label = tk.Label(
+                    self.list_frame,
+                    text=str(len(data))+' part standards found',
+                    font=('Segoe UI', 14),
+                    bg='white',
+                    anchor='w'
+                )
+                item_count_label.pack(pady=(20, 5), fill=tk.X)
 
-                # Add action buttons for update and delete
-                action_frame = tk.Frame(self.table_frame, bg='#eaebec' if row_index % 2 == 0 else '#f5f6f7')
-                update_button = tk.Button(action_frame, padx=10, pady=2, text="Update", bg='lightgray', font=('Segoe UI', 10), relief=tk.FLAT, command=lambda r=row: self.open_dialog(r))
-                delete_button = tk.Button(action_frame, padx=10, pady=2, text="Delete", bg='lightgray', font=('Segoe UI', 10), relief=tk.FLAT, command=lambda r=row: self.delete_entry(r['id']))
-                update_button.pack(side=tk.LEFT, padx=(6, 3), pady=2)
-                delete_button.pack(side=tk.LEFT, padx=(3, 6), pady=2)
-                update_button.bind("<Enter>", on_enter)
-                update_button.bind("<Leave>", on_leave)
-                delete_button.bind("<Enter>", on_enter)
-                delete_button.bind("<Leave>", on_leave)
-                action_frame.grid(row=row_index + 1, column=len(self.headers) - 1, sticky="nsew", padx=(0, 1))
-            
-            # Configure grid weights for proper resizing
-            for col in range(len(self.headers) - 1):
-                self.table_frame.grid_columnconfigure(col, weight=0 if col == 0 else 1)  # Prevent the first columns to expand
-            
-            self.table_frame.grid_columnconfigure(len(self.headers) - 1, weight=0)  # Prevent the last column to expand
+                # Populate the list with data
+                for row_index, row in enumerate(data):
+                    item_frame = tk.Frame(self.list_frame, bg='white')
+                    item_frame.pack(fill=tk.X)
+                    
+                    # values = [row['id'], row['name'], row['std'], row['unit']]
+                    
+                    data_label = tk.Label(
+                        item_frame,
+                        padx=10,
+                        pady=10,
+                        anchor='w',
+                        justify='left',
+                        text=f"{row['name']}\n{row['std']} {row['unit']}",
+                        bg='white',
+                        font=('Segoe UI', 10)
+                    )
+                    data_label.pack(fill=tk.X)
+                    data_label.bind('<Enter>', frame_enter)
+                    data_label.bind('<Leave>', frame_leave)
+                    data_label.bind('<Button-1>', frame_selected)
+                    
+                    action_frame = tk.Frame(item_frame, bg='#f1f2f3')
+
+                    modify_button = tk.Button(
+                        action_frame,
+                        padx=10,
+                        pady=2,
+                        text="Modify",
+                        command=lambda r=row: self.open_dialog(r),
+                        bg='lightgray',
+                        font=('Segoe UI', 10),
+                        relief=tk.FLAT
+                    )
+
+                    delete_button = tk.Button(
+                        action_frame,
+                        padx=10,
+                        pady=2,
+                        text="Delete",
+                        command=lambda r=row: self.delete_entry(r['id']),
+                        bg='lightgray',
+                        font=('Segoe UI', 10),
+                        relief=tk.FLAT
+                    )
+
+                    delete_button.pack(side=tk.RIGHT, padx=(3, 6), pady=(0, 10))
+                    delete_button.bind("<Enter>", on_enter)
+                    delete_button.bind("<Leave>", on_leave)
+
+                    modify_button.pack(side=tk.RIGHT, padx=(3, 3), pady=(0, 10))
+                    modify_button.bind("<Enter>", on_enter)
+                    modify_button.bind("<Leave>", on_leave)
+
+                    action_frame.pack(fill=tk.X)
+                    action_frame.pack_forget()
 
         except requests.RequestException as e:
             messagebox.showerror("Error", f"Failed to load data: {e}")
@@ -97,8 +165,18 @@ class StandardContent:
     def show_no_data(self):
         """Show 'No Data' message in the table if no data is available."""
         # if not self.table_frame.winfo_children():
-        no_data_label = tk.Label(self.table_frame, text="No Data", font=('Segoe UI', 10), bg='#eaebec', anchor='w')
-        no_data_label.grid(row=1, column=0, columnspan=len(self.headers), sticky="nsew", padx=20, pady=10)        
+        # no_data_label = tk.Label(self.table_frame, text="No Data", font=('Segoe UI', 10), bg='#eaebec', anchor='w')
+        # no_data_label.grid(row=1, column=0, columnspan=len(self.headers), sticky="nsew", padx=20, pady=10)        
+        data_label = tk.Label(
+            self.list_frame,
+            padx=10,
+            pady=10,
+            text="No Data",
+            font=('Segoe UI', 10),
+            bg='white',
+            anchor='w',
+        )
+        data_label.pack(fill=tk.X)
     
     def open_dialog(self, entry=None):
         """Open dialog for creating or updating an entry."""
@@ -141,11 +219,11 @@ class StandardContent:
 
         # Populate fields if updating
         if entry:
-            part_name_entry.insert(0, entry['part_name'])
-            part_std_entry.insert(0, entry['part_std'])
+            part_name_entry.insert(0, entry['name'])
+            part_std_entry.insert(0, entry['std'])
             unit_var.set(entry['unit'])
 
-        tk.Button(dialog, padx=10, pady=5, bg='lightgray', font=('Segoe UI', 10), text="Submit", command=lambda: self.submit(part_name_entry.get(), part_std_entry.get(), unit_var.get(), dialog), relief=tk.FLAT).pack(side=tk.LEFT)  # Submit button on the left
+        tk.Button(dialog, padx=10, pady=5, bg='lightgray', font=('Segoe UI', 10), text="Submit", command=lambda: self.submit(part_name_entry.get(), part_std_entry.get(), unit_var.get(), dialog, entry), relief=tk.FLAT).pack(side=tk.LEFT)  # Submit button on the left
         tk.Button(dialog, padx=10, pady=5, bg='lightgray', font=('Segoe UI', 10), text="Clear", command=lambda: self.clear(part_name_entry, part_std_entry, unit_var), relief=tk.FLAT).pack(side=tk.RIGHT, padx=(5, 0))  # Clear button on the right
         tk.Button(dialog, padx=10, pady=5, bg='lightgray', font=('Segoe UI', 10), text="Cancel", command=dialog.destroy, relief=tk.FLAT).pack(side=tk.RIGHT, padx=(5, 0))  # Cancel button on the right
 
@@ -155,39 +233,50 @@ class StandardContent:
             return True
         return False
         
-    def submit(self, part_name, part_std, unit, dialog, entry=None):
+    def submit(self, name, std, unit, dialog, entry=None):
         """Handle the submission logic here."""
-        if entry:  # Update existing entry
-            # Call API to update the entry with parameters in the URL
-            api_url = api_url = f"{os.getenv('API_BASE_URL')}/parts/?id={entry['id']}?name={part_name}&std={part_std}&unit={unit}"
-            response = requests.put(api_url)
-        else:  # Create new entry
-            # Call API to create a new entry with parameters in the URL
-            api_url = f"{os.getenv('API_BASE_URL')}/parts?name={part_name}&std={part_std}&unit={unit}"
-            response = requests.post(api_url)
+        try:
+            with open('config.json', 'r') as file:
+                json_data = json.load(file)
+                base_api_url = json_data.get('default', None)
 
-        print(response.json())
+                # Update existing entry
+                if entry:
+                    response = requests.put(f"http://{base_api_url}/parts/?id={entry['id']}&name={name}&std={std}&unit={unit}")
+                # Create new entry
+                else:
+                    response = requests.post(f"http://{base_api_url}/parts?name={name}&std={std}&unit={unit}")
+                
+                print(f"http://{base_api_url}/parts/?id={entry['id']}?name={name}&std={std}&unit={unit}")
+                print(response.json())
+                if response.status_code in (200, 201):
+                    messagebox.showinfo("Success", "Entry saved successfully!")
+                    self.load_data()  # Reload data to reflect changes
+                    dialog.destroy()  # Close the dialog after submission
+                else:
+                    messagebox.showerror("Error", "Failed to save entry.")
 
-        if response.status_code in (200, 201):  # Check for success
-            messagebox.showinfo("Success", "Entry saved successfully!")
-            self.load_data()  # Reload data to reflect changes
-            dialog.destroy()  # Close the dialog after submission
-        else:
-            messagebox.showerror("Error", "Failed to save entry.")
+        except requests.RequestException as e:
+            messagebox.showerror("Error", f"Failed to save entry: {e}")
+
 
     def delete_entry(self, entry_id):
         """Delete an entry by ID."""
-        api_url = f"{os.getenv('API_BASE_URL')}/parts/?id={entry_id}"
-        response = requests.delete(api_url)
+        try:
+            with open('config.json', 'r') as file:
+                json_data = json.load(file)
+                base_api_url = json_data.get('default', None)
+                
+                response = requests.delete(f"http://{base_api_url}/parts/?id={entry_id}")
 
-        print(api_url)
-        print(response.json())
+                if response.status_code in (200, 201):
+                    messagebox.showinfo("Success", "Entry deleted successfully!")
+                    self.load_data()  # Reload data to reflect changes
+                else:
+                    messagebox.showerror("Error", "Failed to delete entry.")
 
-        if response.status_code == 200:  # No content on successful delete
-            messagebox.showinfo("Success", "Entry deleted successfully!")
-            self.load_data()  # Reload data to reflect changes
-        else:
-            messagebox.showerror("Error", "Failed to delete entry.")
+        except requests.RequestException as e:
+            messagebox.showerror("Error", f"Failed to delete entry: {e}")
 
     def clear(self, part_name_entry, part_std_entry, unit_var):
         # Clear the input fields

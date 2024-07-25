@@ -109,6 +109,7 @@ class DevicesContent:
                 anchor='w'
             )
             item_count_label.pack(pady=(20, 5), fill=tk.X)
+            
             # Populate the list with data
             for list_index, address in enumerate(data):
                 item_frame = tk.Frame(self.list_frame, bg='white')
