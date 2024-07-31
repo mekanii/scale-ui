@@ -5,10 +5,6 @@ from include.frame_hover import frame_selected, frame_enter, frame_leave
 import requests
 import os
 import json
-from dotenv import load_dotenv
-
-# Load environment variables from .env file
-load_dotenv()
 
 class StandardContent:
     def __init__(self, parent):
@@ -223,7 +219,15 @@ class StandardContent:
             part_std_entry.insert(0, entry['std'])
             unit_var.set(entry['unit'])
 
-        tk.Button(dialog, padx=10, pady=5, bg='lightgray', font=('Segoe UI', 10), text="Submit", command=lambda: self.submit(part_name_entry.get(), part_std_entry.get(), unit_var.get(), dialog, entry), relief=tk.FLAT).pack(side=tk.LEFT)  # Submit button on the left
+        tk.Button(
+            dialog,
+            padx=10,
+            pady=5,
+            bg='lightgray',
+            font=('Segoe UI', 10),
+            text="Submit",
+            command=lambda: self.submit(part_name_entry.get(), part_std_entry.get(), unit_var.get(), dialog, entry),
+            relief=tk.FLAT).pack(side=tk.LEFT)  # Submit button on the left
         tk.Button(dialog, padx=10, pady=5, bg='lightgray', font=('Segoe UI', 10), text="Clear", command=lambda: self.clear(part_name_entry, part_std_entry, unit_var), relief=tk.FLAT).pack(side=tk.RIGHT, padx=(5, 0))  # Clear button on the right
         tk.Button(dialog, padx=10, pady=5, bg='lightgray', font=('Segoe UI', 10), text="Cancel", command=dialog.destroy, relief=tk.FLAT).pack(side=tk.RIGHT, padx=(5, 0))  # Cancel button on the right
 
@@ -247,7 +251,6 @@ class StandardContent:
                 else:
                     response = requests.post(f"http://{base_api_url}/parts?name={name}&std={std}&unit={unit}")
                 
-                print(f"http://{base_api_url}/parts/?id={entry['id']}?name={name}&std={std}&unit={unit}")
                 print(response.json())
                 if response.status_code in (200, 201):
                     messagebox.showinfo("Success", "Entry saved successfully!")
