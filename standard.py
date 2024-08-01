@@ -78,11 +78,15 @@ class StandardContent:
                 base_api_url = json_data.get('default', None)
 
                 response = requests.get(f"http://{base_api_url}/parts")
-                response.raise_for_status()  # Raise an error for bad responses
+                
+                # Raise an error for bad responses
+                response.raise_for_status()
             
                 # Parse the response JSON
-                response_json = response.json()  # Assuming the response is in JSON format
-                data = response_json.get('data', [])  # Get the 'data' field, default to an empty list if not found
+                response_json = response.json()
+
+                # Get the 'data' field, default to an empty list if not found
+                data = response_json.get('data', [])
 
                 # Clear existing table data
                 for widget in self.list_frame.winfo_children():
@@ -160,9 +164,7 @@ class StandardContent:
     
     def show_no_data(self):
         """Show 'No Data' message in the table if no data is available."""
-        # if not self.table_frame.winfo_children():
-        # no_data_label = tk.Label(self.table_frame, text="No Data", font=('Segoe UI', 10), bg='#eaebec', anchor='w')
-        # no_data_label.grid(row=1, column=0, columnspan=len(self.headers), sticky="nsew", padx=20, pady=10)        
+           
         data_label = tk.Label(
             self.list_frame,
             padx=10,
@@ -176,6 +178,7 @@ class StandardContent:
     
     def open_dialog(self, entry=None):
         """Open dialog for creating or updating an entry."""
+
         # Create a new top-level window for the dialog
         dialog = tk.Toplevel(self.frame, padx=10, bg='white')
         dialog.title("Add Part Standard")
@@ -202,8 +205,21 @@ class StandardContent:
         part_std_frame = tk.Frame(dialog, highlightthickness=1, bg='white')
         part_std_frame.config(highlightbackground='darkgray', highlightcolor='darkgray')
         part_std_frame.pack(fill=tk.X)
-        part_std_entry = tk.Entry(part_std_frame, validate='key', validatecommand=vcmd, justify='right', font=('Segoe UI', 10), relief=tk.FLAT)
-        part_std_entry.pack(padx=5, pady=5, fill=tk.X)
+        self.part_std_entry = tk.Entry(part_std_frame, validate='key', validatecommand=vcmd, justify='right', font=('Segoe UI', 10), relief=tk.FLAT)
+        self.part_std_entry.pack(padx=5, fill=tk.Y, side=tk.LEFT)
+        
+        tk.Button(
+            part_std_frame,
+            padx=10,
+            pady=5,
+            bg='lightgray',
+            font=('Segoe UI', 10),
+            text="Get weight",
+            command=lambda: self.measure(),
+            relief=tk.FLAT).pack(side=tk.RIGHT)
+        
+        part_std_label = tk.Label(dialog, text="Place **Part** on the loadcell.", font=('Segoe UI', 10), bg='white')
+        part_std_label.pack(anchor='w')
 
         unit_label = tk.Label(dialog, text="Unit", font=('Segoe UI', 10), bg='white')
         unit_label.pack(pady=(10,0), anchor='w')
@@ -216,7 +232,7 @@ class StandardContent:
         # Populate fields if updating
         if entry:
             part_name_entry.insert(0, entry['name'])
-            part_std_entry.insert(0, entry['std'])
+            self.part_std_entry.insert(0, entry['std'])
             unit_var.set(entry['unit'])
 
         tk.Button(
@@ -226,9 +242,9 @@ class StandardContent:
             bg='lightgray',
             font=('Segoe UI', 10),
             text="Submit",
-            command=lambda: self.submit(part_name_entry.get(), part_std_entry.get(), unit_var.get(), dialog, entry),
+            command=lambda: self.submit(part_name_entry.get(), self.part_std_entry.get(), unit_var.get(), dialog, entry),
             relief=tk.FLAT).pack(side=tk.LEFT)  # Submit button on the left
-        tk.Button(dialog, padx=10, pady=5, bg='lightgray', font=('Segoe UI', 10), text="Clear", command=lambda: self.clear(part_name_entry, part_std_entry, unit_var), relief=tk.FLAT).pack(side=tk.RIGHT, padx=(5, 0))  # Clear button on the right
+        tk.Button(dialog, padx=10, pady=5, bg='lightgray', font=('Segoe UI', 10), text="Clear", command=lambda: self.clear(part_name_entry, self.part_std_entry, unit_var), relief=tk.FLAT).pack(side=tk.RIGHT, padx=(5, 0))  # Clear button on the right
         tk.Button(dialog, padx=10, pady=5, bg='lightgray', font=('Segoe UI', 10), text="Cancel", command=dialog.destroy, relief=tk.FLAT).pack(side=tk.RIGHT, padx=(5, 0))  # Cancel button on the right
 
     def validate_numeric_input(self, P):
@@ -236,6 +252,33 @@ class StandardContent:
         if P == "" or P.replace('.', '', 1).isdigit():  # Allow empty input or numeric input
             return True
         return False
+
+    def measure(self):
+        try:
+            with open('config.json', 'r') as file:
+                json_data = json.load(file)
+                base_api_url = json_data.get('default', None)
+                
+                response = requests.get(f"http://{base_api_url}/getStableWeight")
+                        
+                # Raise an error for bad responses
+                response.raise_for_status()
+            
+                # Parse the response JSON
+                response_json = response.json()
+
+                # Get the 'data' field, default to an empty list if not found
+                data = response_json.get('data', 0)
+
+                print(response_json)
+
+                # Clear the entry and insert the new data
+                self.part_std_entry.delete(0, tk.END)
+                self.part_std_entry.insert(0, data)
+        
+        except requests.RequestException as e:
+            messagebox.showerror("Error", f"Failed to get data: {e}")
+            self.show_no_data()
         
     def submit(self, name, std, unit, dialog, entry=None):
         """Handle the submission logic here."""

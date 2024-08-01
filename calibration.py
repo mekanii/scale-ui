@@ -65,7 +65,7 @@ class CalibrationContent:
                 self.log_label = tk.Label(self.log_frame, anchor='w', justify='left', text="Place the load cell on a level stable surface.", font=('Segoe UI', 10), bg='white')
                 self.log_label.pack(fill=tk.X)
 
-                self.log_label = tk.Label(self.log_frame, anchor='w', justify='left', text="Remove any load applied to the load cell.", font=('Segoe UI', 10, "bold"), bg='white')
+                self.log_label = tk.Label(self.log_frame, anchor='w', justify='left', text="Remove any load applied to the load cell.", font=('Segoe UI', 10), bg='white')
                 self.log_label.pack(fill=tk.X)
 
                 self.dot_text = tk.Label(self.log_frame, anchor='w', justify='left', text="", font=('Segoe UI', 10), bg='white')
@@ -89,7 +89,7 @@ class CalibrationContent:
                 self.log_label = tk.Label(self.log_frame, anchor='w', justify='left', text="Initialize complete.", font=('Segoe UI', 10), bg='white')
                 self.log_label.pack(fill=tk.X)
 
-                self.log_label = tk.Label(self.log_frame, anchor='w', justify='left', text="Place **Known Weight** on the loadcell.", font=('Segoe UI', 10, "bold"), bg='white')
+                self.log_label = tk.Label(self.log_frame, anchor='w', justify='left', text="Place **Known Weight** on the loadcell.", font=('Segoe UI', 10), bg='white')
                 self.log_label.pack(fill=tk.X)
 
                 self.dot_text = tk.Label(self.log_frame, anchor='w', justify='left', text="", font=('Segoe UI', 10), bg='white')
