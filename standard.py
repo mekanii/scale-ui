@@ -5,6 +5,12 @@ from include.frame_hover import frame_selected, frame_enter, frame_leave
 import requests
 import os
 import json
+import asyncio
+import threading
+
+def start_event_loop(loop):
+    asyncio.set_event_loop(loop)
+    loop.run_forever()
 
 class StandardContent:
     def __init__(self, parent):
@@ -55,7 +61,7 @@ class StandardContent:
             bg='white',
             relief=tk.FLAT,
             font=('Segoe UI', 10),
-            command=self.load_data
+            command=lambda: asyncio.run_coroutine_threadsafe(self.load_data(), self.loop)
         )
         self.reload_button.pack(pady=5, fill=tk.X)
 
@@ -68,16 +74,23 @@ class StandardContent:
         self.list_frame = tk.Frame(l_frame, bg='white')
         self.list_frame.pack(fill=tk.X)
 
-        self.load_data()
+        # Start the event loop in a separate thread
+        self.loop = asyncio.new_event_loop()
+        threading.Thread(target=start_event_loop, args=(self.loop,), daemon=True).start()
+
+        # Schedule the async load_data
+        asyncio.run_coroutine_threadsafe(self.load_data(), self.loop)
     
-    def load_data(self):
+    async def load_data(self):
         """Fetch data from API and populate the table."""
         try:
             with open('config.json', 'r') as file:
+                self.disable_buttons()
+                
                 json_data = json.load(file)
                 base_api_url = json_data.get('default', None)
 
-                response = requests.get(f"http://{base_api_url}/parts")
+                response = await asyncio.to_thread(requests.get, f"http://{base_api_url}/parts")
                 
                 # Raise an error for bad responses
                 response.raise_for_status()
@@ -141,7 +154,7 @@ class StandardContent:
                         padx=10,
                         pady=2,
                         text="Delete",
-                        command=lambda r=row: self.delete_entry(r['id']),
+                        command=lambda r=row: asyncio.run_coroutine_threadsafe(self.delete_entry(r['id']), self.loop),
                         bg='lightgray',
                         font=('Segoe UI', 10),
                         relief=tk.FLAT
@@ -157,6 +170,8 @@ class StandardContent:
 
                     action_frame.pack(fill=tk.X)
                     action_frame.pack_forget()
+
+                self.enable_buttons()
 
         except requests.RequestException as e:
             messagebox.showerror("Error", f"Failed to load data: {e}")
@@ -175,6 +190,18 @@ class StandardContent:
             anchor='w',
         )
         data_label.pack(fill=tk.X)
+
+        self.disable_buttons()
+
+    def enable_buttons(self):
+        """Enable the 'Add' and 'Reload' buttons."""
+        self.add_button.config(state='normal')
+        self.reload_button.config(state='normal')
+
+    def disable_buttons(self):
+        """Disable the 'Add' and 'Reload' buttons."""
+        self.add_button.config(state='disabled')
+        self.reload_button.config(state='disabled')
     
     def open_dialog(self, entry=None):
         """Open dialog for creating or updating an entry."""
@@ -214,8 +241,8 @@ class StandardContent:
             pady=5,
             bg='lightgray',
             font=('Segoe UI', 10),
-            text="Get weight",
-            command=lambda: self.measure(),
+            text="Get weight (gr)",
+            command=lambda: asyncio.run_coroutine_threadsafe(self.measure(), self.loop),
             relief=tk.FLAT).pack(side=tk.RIGHT)
         
         part_std_label = tk.Label(dialog, text="Place **Part** on the loadcell.", font=('Segoe UI', 10), bg='white')
@@ -242,7 +269,16 @@ class StandardContent:
             bg='lightgray',
             font=('Segoe UI', 10),
             text="Submit",
-            command=lambda: self.submit(part_name_entry.get(), self.part_std_entry.get(), unit_var.get(), dialog, entry),
+            command=lambda: asyncio.run_coroutine_threadsafe(
+                self.submit(
+                    part_name_entry.get(), 
+                    self.part_std_entry.get(), 
+                    unit_var.get(), 
+                    dialog, 
+                    entry
+                ),
+                self.loop
+            ),
             relief=tk.FLAT).pack(side=tk.LEFT)  # Submit button on the left
         tk.Button(dialog, padx=10, pady=5, bg='lightgray', font=('Segoe UI', 10), text="Clear", command=lambda: self.clear(part_name_entry, self.part_std_entry, unit_var), relief=tk.FLAT).pack(side=tk.RIGHT, padx=(5, 0))  # Clear button on the right
         tk.Button(dialog, padx=10, pady=5, bg='lightgray', font=('Segoe UI', 10), text="Cancel", command=dialog.destroy, relief=tk.FLAT).pack(side=tk.RIGHT, padx=(5, 0))  # Cancel button on the right
@@ -253,13 +289,13 @@ class StandardContent:
             return True
         return False
 
-    def measure(self):
+    async def measure(self):
         try:
             with open('config.json', 'r') as file:
                 json_data = json.load(file)
                 base_api_url = json_data.get('default', None)
                 
-                response = requests.get(f"http://{base_api_url}/getStableWeight")
+                response = await asyncio.to_thread(requests.get, f"http://{base_api_url}/getStableWeight")
                         
                 # Raise an error for bad responses
                 response.raise_for_status()
@@ -269,8 +305,8 @@ class StandardContent:
 
                 # Get the 'data' field, default to an empty list if not found
                 data = response_json.get('data', 0)
-
-                print(response_json)
+                
+                data = max(0, float(format(data, '.2f')))
 
                 # Clear the entry and insert the new data
                 self.part_std_entry.delete(0, tk.END)
@@ -280,7 +316,7 @@ class StandardContent:
             messagebox.showerror("Error", f"Failed to get data: {e}")
             self.show_no_data()
         
-    def submit(self, name, std, unit, dialog, entry=None):
+    async def submit(self, name, std, unit, dialog, entry=None):
         """Handle the submission logic here."""
         try:
             with open('config.json', 'r') as file:
@@ -289,15 +325,14 @@ class StandardContent:
 
                 # Update existing entry
                 if entry:
-                    response = requests.put(f"http://{base_api_url}/parts/?id={entry['id']}&name={name}&std={std}&unit={unit}")
+                    response = await asyncio.to_thread(requests.put, f"http://{base_api_url}/parts/?id={entry['id']}&name={name}&std={std}&unit={unit}")
                 # Create new entry
                 else:
-                    response = requests.post(f"http://{base_api_url}/parts?name={name}&std={std}&unit={unit}")
+                    response = await asyncio.to_thread(requests.post, f"http://{base_api_url}/parts?name={name}&std={std}&unit={unit}")
                 
-                print(response.json())
                 if response.status_code in (200, 201):
                     messagebox.showinfo("Success", "Entry saved successfully!")
-                    self.load_data()  # Reload data to reflect changes
+                    asyncio.run_coroutine_threadsafe(self.load_data(), self.loop)  # Reload data to reflect changes
                     dialog.destroy()  # Close the dialog after submission
                 else:
                     messagebox.showerror("Error", "Failed to save entry.")
@@ -306,18 +341,18 @@ class StandardContent:
             messagebox.showerror("Error", f"Failed to save entry: {e}")
 
 
-    def delete_entry(self, entry_id):
+    async def delete_entry(self, entry_id):
         """Delete an entry by ID."""
         try:
             with open('config.json', 'r') as file:
                 json_data = json.load(file)
                 base_api_url = json_data.get('default', None)
                 
-                response = requests.delete(f"http://{base_api_url}/parts/?id={entry_id}")
+                response = await asyncio.to_thread(requests.delete, f"http://{base_api_url}/parts/?id={entry_id}")
 
                 if response.status_code in (200, 201):
                     messagebox.showinfo("Success", "Entry deleted successfully!")
-                    self.load_data()  # Reload data to reflect changes
+                    asyncio.run_coroutine_threadsafe(self.load_data(), self.loop)  # Reload data to reflect changes
                 else:
                     messagebox.showerror("Error", "Failed to delete entry.")
 
