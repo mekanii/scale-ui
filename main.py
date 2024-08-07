@@ -25,7 +25,7 @@ class SettingsWindow:
 
         # Create a frame for the main content
         self.content_frame = tk.Frame(self.master, bg='white')
-        self.content_frame.pack(padx=10, expand=True, fill=tk.BOTH)
+        self.content_frame.pack(padx=(10, 0), expand=True, fill=tk.BOTH)
 
         # Initialize content
         self.current_content = None
