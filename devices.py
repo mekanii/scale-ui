@@ -12,11 +12,22 @@ class DevicesContent:
         current_dir = os.path.dirname(os.path.abspath(__file__))
         icon_dir = os.path.join(current_dir, "assets", "icons")
 
-        self.frame = tk.Frame(parent, bg='white')
-        self.frame.pack(fill=tk.BOTH, expand=True)
+        # Create a canvas and a vertical scrollbar
+        self.canvas = tk.Canvas(parent, bg='white')
+        self.scrollbar = tk.Scrollbar(parent, orient="vertical", command=self.canvas.yview)
+        self.scrollbar.pack(side="right", fill="y")
+        self.canvas.pack(side="left", fill="both", expand=True)
+        self.canvas.configure(yscrollcommand=self.scrollbar.set)
+
+        # Create a frame inside the canvas
+        self.frame = tk.Frame(self.canvas, bg='white')
+        self.canvas.create_window((0, 0), window=self.frame, anchor="nw")
+
+        # Configure the canvas to update the scroll region
+        self.frame.bind("<Configure>", lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
+
         self.frame.grid_columnconfigure(0, weight=1)
         self.frame.grid_columnconfigure(1, weight=1)
-        # self.frame.pack(pady=10)
 
         l_frame = tk.Frame(self.frame, bg='white')
         l_frame.grid(row=0, padx=(0, 10), pady=10, column=0, sticky='nsew')
