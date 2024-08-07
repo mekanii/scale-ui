@@ -85,7 +85,7 @@ class StandardContent:
         threading.Thread(target=start_event_loop, args=(self.loop,), daemon=True).start()
 
         # Schedule the async load_data
-        asyncio.run_coroutine_threadsafe(self.load_data(), self.loop)
+        # asyncio.run_coroutine_threadsafe(self.load_data(), self.loop)
     
     async def load_data(self):
         """Fetch data from API and populate the table."""

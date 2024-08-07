@@ -114,7 +114,7 @@ class CalibrationContent:
         """Open dialog for creating or updating an entry."""
         # Create a new top-level window for the dialog
         dialog = tk.Toplevel(self.frame, padx=10, bg='white')
-        dialog.title("Add New Device")
+        dialog.title("Known Weight")
 
         # Set minimum width and height
         dialog.minsize(width=300, height=150)  # Minimum width of 300 pixels
@@ -122,7 +122,7 @@ class CalibrationContent:
         # Center the dialog on the parent window
         self.center_dialog(dialog)
 
-        known_weight_label = tk.Label(dialog, text="IP Address", font=('Segoe UI', 10), bg='white', fg='black')
+        known_weight_label = tk.Label(dialog, text="Known Weight", font=('Segoe UI', 10), bg='white', fg='black')
         known_weight_label.pack(pady=(10, 0), anchor='w')
         known_weight_frame = tk.Frame(dialog, highlightthickness=1, bg='white')
         known_weight_frame.config(highlightbackground='darkgray', highlightcolor='darkgray')
