@@ -29,7 +29,6 @@ class CalibrationContent:
         self.start_button = tk.Button(
             l_frame,
             padx=10,
-            pady=10,
             anchor='w',
             justify='left',
             image=self.start_icon,
@@ -39,9 +38,12 @@ class CalibrationContent:
             relief=tk.FLAT,
             font=('Segoe UI', 10),
             command=self.init_calibration,
-            fg='black'
+            fg='black',
+            bd=0,
+            borderwidth=0,
+            highlightthickness=0
         )
-        self.start_button.pack(pady=5, fill=tk.X)
+        self.start_button.pack(pady=5, ipady=10, fill=tk.X)
         self.start_button.bind("<Enter>", lambda e: on_enter(e, color='#f1f2f3'))
         self.start_button.bind("<Leave>", lambda e: on_leave(e, color='white'))
 
@@ -133,12 +135,38 @@ class CalibrationContent:
         button_frame.grid_columnconfigure(0, weight=1)
         button_frame.grid_columnconfigure(1, weight=1)
 
-        submit_button = tk.Button(button_frame, padx=10, pady=5, bg='lightgray', font=('Segoe UI', 10), text="Submit", command=lambda: self.submit(known_weight_entry.get(), dialog), relief=tk.FLAT, fg='black')
+        submit_button = tk.Button(
+            button_frame,
+            padx=10,
+            pady=5,
+            bg='lightgray',
+            font=('Segoe UI', 10),
+            text="Submit",
+            command=lambda: self.submit(known_weight_entry.get(), dialog),
+            relief=tk.FLAT,
+            fg='black',
+            bd=0,
+            borderwidth=0,
+            highlightthickness=0
+        )
         submit_button.grid(padx=(0, 5), row=0, column=0, sticky='ew')
         submit_button.bind("<Enter>", on_enter)
         submit_button.bind("<Leave>", on_leave)
         
-        cancel_button = tk.Button(button_frame, padx=10, pady=5, bg='lightgray', font=('Segoe UI', 10), text="Cancel", command=lambda: [dialog.destroy(), *map(lambda child: child.destroy(), self.log_frame.winfo_children())], relief=tk.FLAT, fg='black')
+        cancel_button = tk.Button(
+            button_frame,
+            padx=10,
+            pady=5,
+            bg='lightgray',
+            font=('Segoe UI', 10),
+            text="Cancel",
+            command=lambda: [dialog.destroy(), *map(lambda child: child.destroy(), self.log_frame.winfo_children())],
+            relief=tk.FLAT,
+            fg='black',
+            bd=0,
+            borderwidth=0,
+            highlightthickness=0
+        )
         cancel_button.grid(padx=(5, 0), row=0, column=1, sticky='ew')
         cancel_button.bind("<Enter>", on_enter)
         cancel_button.bind("<Leave>", on_leave)

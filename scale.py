@@ -45,7 +45,6 @@ class ScaleContent:
         self.reload_button = tk.Button(
             l_frame,
             padx=10,
-            pady=10,
             anchor='w',
             justify='left',
             image=self.reload_icon,
@@ -55,9 +54,12 @@ class ScaleContent:
             relief=tk.FLAT,
             font=('Segoe UI', 10),
             command=lambda: asyncio.run_coroutine_threadsafe(self.load_data(), self.loop),
-            fg='black'
+            fg='black',
+            bd=0,
+            borderwidth=0,
+            highlightthickness=0
         )
-        self.reload_button.pack(pady=5, fill=tk.X)
+        self.reload_button.pack(pady=5, ipady=10, fill=tk.X)
         self.reload_button.bind("<Enter>", lambda e: on_enter(e, color='#f1f2f3'))
         self.reload_button.bind("<Leave>", lambda e: on_leave(e, color='white'))
 
@@ -116,7 +118,6 @@ class ScaleContent:
                 self.connect_button = tk.Button(
                     self.list_frame,
                     padx=10,
-                    pady=10,
                     anchor='w',
                     justify='left',
                     image=self.connect_icon,
@@ -126,15 +127,17 @@ class ScaleContent:
                     relief=tk.FLAT,
                     font=('Segoe UI', 10),
                     command=lambda: asyncio.run_coroutine_threadsafe(self.start(self.dropdown.get(), data) if self.connect_button['text'] == 'Connect' else self.stop(), self.loop),
-                    fg='black'
+                    fg='black',
+                    bd=0,
+                    borderwidth=0,
+                    highlightthickness=0
                 )
-                self.connect_button.pack(pady=5, fill=tk.X)
+                self.connect_button.pack(pady=5, ipady=10, fill=tk.X)
 
                 self.tare_icon = PhotoImage(file=os.path.join(self.icon_dir, "refresh-solid-36.png"))
                 self.tare_button = tk.Button(
                     self.list_frame,
                     padx=10,
-                    pady=10,
                     anchor='w',
                     justify='left',
                     image=self.connect_icon,
@@ -144,9 +147,12 @@ class ScaleContent:
                     relief=tk.FLAT,
                     font=('Segoe UI', 10),
                     command=lambda: asyncio.run_coroutine_threadsafe(self.tare(), self.loop),
-                    fg='black'
+                    fg='black',
+                    bd=0,
+                    borderwidth=0,
+                    highlightthickness=0
                 )
-                self.tare_button.pack(pady=5, fill=tk.X)
+                self.tare_button.pack(pady=5, ipady=10, fill=tk.X)
 
                 self.connect_button.bind("<Enter>", lambda e: on_enter(e, color='#f1f2f3'))
                 self.connect_button.bind("<Leave>", lambda e: on_leave(e, color='white'))

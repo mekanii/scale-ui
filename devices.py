@@ -38,7 +38,10 @@ class DevicesContent:
             relief=tk.FLAT,
             font=('Segoe UI', 10),
             command=self.open_dialog,
-            fg='black'
+            fg='black',
+            bd=0,
+            borderwidth=0,
+            highlightthickness=0
         )
         self.add_button.pack(pady=5, ipady=10, fill=tk.X)
 
@@ -55,7 +58,10 @@ class DevicesContent:
             relief=tk.FLAT,
             font=('Segoe UI', 10),
             command=self.load_data,
-            fg='black'
+            fg='black',
+            bd=0,
+            borderwidth=0,
+            highlightthickness=0
         )
         self.reload_button.pack(pady=5, ipady=10, fill=tk.X)
 
@@ -276,7 +282,10 @@ class DevicesContent:
             text="Submit",
             command=lambda: self.submit(address_entry.get(), dialog, address),
             relief=tk.FLAT,
-            fg='black'
+            fg='black',
+            bd=0,
+            borderwidth=0,
+            highlightthickness=0
         )
         submit_button.grid(padx=(0, 5), row=0, column=0, sticky='ew')
         submit_button.bind("<Enter>", on_enter)
@@ -291,7 +300,10 @@ class DevicesContent:
             text="Cancel",
             command=dialog.destroy,
             relief=tk.FLAT,
-            fg='black'
+            fg='black',
+            bd=0,
+            borderwidth=0,
+            highlightthickness=0
         )
         cancel_button.grid(padx=(5, 0), row=0, column=1, sticky='ew')
         cancel_button.bind("<Enter>", on_enter)

@@ -17,7 +17,7 @@ Scale-UI is a graphical user interface (GUI) application designed to manage and 
 
 1. **Clone the repository**:
     ```bash
-    git clone https://github.com/yourusername/scale-ui.git
+    git clone https://github.com/mekanii/scale-ui.git
     cd scale-ui
     ```
 
