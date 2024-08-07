@@ -216,10 +216,12 @@ class ScaleContent:
                                 if data['check'] == 1 and data['check'] != self.last_check:
                                     print(data)
                                     asyncio.run_coroutine_threadsafe(self.play_tone("OK"), self.loop)
-                                    self.status_label.config(text="NOT GOOD")
+                                    self.status_label.config(fg='green')
+                                    self.status_label.config(text="QTY GOOD")
                                 elif data['check'] == 2 and data['check'] != self.last_check:
                                     print(data)
                                     asyncio.run_coroutine_threadsafe(self.play_tone("NG"), self.loop)
+                                    self.status_label.config(fg='red')
                                     self.status_label.config(text="NOT GOOD")
                                 elif data['check'] == 0 and data['check'] != self.last_check:
                                     self.status_label.config(text="")
