@@ -22,14 +22,13 @@ class DevicesContent:
         r_frame.grid(row=0, pady=10, column=1, sticky='nsew')
 
         # Create and configure content label
-        self.content_label = tk.Label(l_frame, text="Devices", font=("Segoe UI", 24), anchor='w', bg='white')
+        self.content_label = tk.Label(l_frame, text="Devices", font=("Segoe UI", 24), anchor='w', bg='white', fg='black')
         self.content_label.pack(pady=10, anchor='w')
 
         self.add_icon = PhotoImage(file=os.path.join(icon_dir, "add-solid-36.png"))
         self.add_button = tk.Button(
             l_frame,
             padx=10,
-            pady=10,
             anchor='w',
             justify='left',
             image=self.add_icon,
@@ -38,15 +37,15 @@ class DevicesContent:
             bg='white',
             relief=tk.FLAT,
             font=('Segoe UI', 10),
-            command=self.open_dialog
+            command=self.open_dialog,
+            fg='black'
         )
-        self.add_button.pack(pady=5, fill=tk.X)
+        self.add_button.pack(pady=5, ipady=10, fill=tk.X)
 
         self.reload_icon = PhotoImage(file=os.path.join(icon_dir, "refresh-solid-36.png"))
         self.reload_button = tk.Button(
             l_frame,
             padx=10,
-            pady=10,
             anchor='w',
             justify='left',
             image=self.reload_icon,
@@ -55,9 +54,10 @@ class DevicesContent:
             bg='white',
             relief=tk.FLAT,
             font=('Segoe UI', 10),
-            command=self.load_data
+            command=self.load_data,
+            fg='black'
         )
-        self.reload_button.pack(pady=5, fill=tk.X)
+        self.reload_button.pack(pady=5, ipady=10, fill=tk.X)
 
         self.add_button.bind("<Enter>", lambda e: on_enter(e, color='#f1f2f3'))
         self.add_button.bind("<Leave>", lambda e: on_leave(e, color='white'))
@@ -70,25 +70,6 @@ class DevicesContent:
 
         self.load_data()
 
-        # # Create a new frame for the data table
-        # self.table_frame = tk.Frame(self.frame)
-        # self.table_frame.pack(pady=10, fill=tk.X)  # Allow the table frame to expand only in width
-
-        # # Create table headers
-        # self.headers = ["Address", "Action"]
-        # for col in range(len(self.headers)):
-        #     header_label = tk.Label(self.table_frame, text=self.headers[col], borderwidth=0, font=('Segoe UI', 10, 'bold'), bg='#007bff', fg='white', padx=20 if (col == 0 or col == len(self.headers) - 1) else 0, pady=10)
-        #     header_label.grid(row=0, column=col, sticky="nsew", padx=(0, 1))
-        
-        # # Configure grid weights for proper resizing
-        # for col in range(len(self.headers) - 1):
-        #     self.table_frame.grid_columnconfigure(col, weight=0 if col == len(self.headers) - 1 else 1)  # Prevent the first columns to expand
-        
-        # # self.table_frame.grid_columnconfigure(len(self.headers) - 1, weight=0)  # Prevent the last column to expand
-        
-        # # Load initial data from config.json
-        # self.load_data()
-    
     def load_data(self):
         """Fetch data from config.json and populate the list."""
         try:
@@ -96,20 +77,21 @@ class DevicesContent:
                 response_json = json.load(file)  # Load JSON data
                 data = response_json.get('address', [])  # Get the 'address' field
                 self.default_address = response_json.get('default', None)  # Store the default address
-            
+
             # Clear existing list data
             for widget in self.list_frame.winfo_children():
                 widget.destroy()
-            
+
             item_count_label = tk.Label(
                 self.list_frame,
                 text=str(len(data))+' devices found',
                 font=('Segoe UI', 14),
                 bg='white',
-                anchor='w'
+                anchor='w',
+                fg='black'
             )
             item_count_label.pack(pady=(20, 5), fill=tk.X)
-            
+
             # Populate the list with data
             for list_index, address in enumerate(data):
                 item_frame = tk.Frame(self.list_frame, bg='white')
@@ -121,7 +103,8 @@ class DevicesContent:
                     text=address+' (default)' if address == self.default_address else address,
                     font=('Segoe UI', 10),
                     bg='white',
-                    anchor='w'
+                    anchor='w',
+                    fg='black'
                 )
                 data_label.pack(fill=tk.X)
                 data_label.bind('<Enter>', frame_enter)
@@ -138,7 +121,11 @@ class DevicesContent:
                     command=lambda addr=address: self.set_default(addr),
                     bg='lightgray',
                     font=('Segoe UI', 10),
-                    relief=tk.FLAT
+                    relief=tk.FLAT,
+                    bd=0,
+                    borderwidth=0,
+                    highlightthickness=0,
+                    fg='black'
                 )
 
                 modify_button = tk.Button(
@@ -149,7 +136,11 @@ class DevicesContent:
                     command=lambda addr=address: self.open_dialog(addr),
                     bg='lightgray',
                     font=('Segoe UI', 10),
-                    relief=tk.FLAT
+                    relief=tk.FLAT,
+                    bd=0,
+                    borderwidth=0,
+                    highlightthickness=0,
+                    fg='black'
                 )
 
                 delete_button = tk.Button(
@@ -160,7 +151,11 @@ class DevicesContent:
                     command=lambda addr=address: self.delete_entry(addr),
                     bg='lightgray',
                     font=('Segoe UI', 10),
-                    relief=tk.FLAT
+                    relief=tk.FLAT,
+                    bd=0,
+                    borderwidth=0,
+                    highlightthickness=0,
+                    fg='black'
                 )
 
                 delete_button.pack(side=tk.RIGHT, padx=(3, 6), pady=(0, 10))
@@ -185,56 +180,9 @@ class DevicesContent:
         except (FileNotFoundError, json.JSONDecodeError) as e:
             messagebox.showerror("Error", f"Failed to load data: {e}")
             self.show_no_data()
-    
-    # def load_data(self):
-    #     """Fetch data from config.json and populate the table."""
-    #     try:
-    #         with open('config.json', 'r') as file:  # Open config.json for reading
-    #             response_json = json.load(file)  # Load JSON data
-    #             data = response_json.get('address', [])  # Get the 'address' field
-    #             self.default_address = response_json.get('default', None)  # Store the default address
 
-    #         # Clear existing table data
-    #         for widget in self.table_frame.winfo_children():
-    #             if widget.grid_info()['row'] > 0:
-    #                 widget.destroy()
-
-    #         # Populate the table with data
-    #         for row_index, address in enumerate(data):
-    #             data_label = tk.Label(self.table_frame, text=address+' (default)' if address == self.default_address else address, borderwidth=0, font=('Segoe UI', 10), bg='#eaebec' if row_index % 2 == 0 else '#f5f6f7', padx=20, pady=10)
-    #             data_label.grid(row=row_index + 1, column=0, sticky="nsew", padx=(0, 1))
-
-    #             # Add action buttons for update and delete
-    #             action_frame = tk.Frame(self.table_frame, bg='#eaebec' if row_index % 2 == 0 else '#f5f6f7')
-    #             default_button = tk.Button(action_frame, padx=10, pady=2, text="Default", bg='lightgray', font=('Segoe UI', 10), relief=tk.FLAT, command=lambda addr=address: self.set_default(addr))
-    #             update_button = tk.Button(action_frame, padx=10, pady=2, text="Update", bg='lightgray', font=('Segoe UI', 10), relief=tk.FLAT, command=lambda addr=address: self.open_dialog(addr))
-    #             delete_button = tk.Button(action_frame, padx=10, pady=2, text="Delete", bg='lightgray', font=('Segoe UI', 10), relief=tk.FLAT, command=lambda addr=address: self.delete_entry(addr))
-                
-    #             # Disable the default button if the address is the default
-    #             if address == self.default_address:
-    #                 default_button.config(state=tk.DISABLED)
-                    
-    #             default_button.pack(side=tk.LEFT, padx=(6, 3), pady=2)  # Add Default button
-    #             update_button.pack(side=tk.LEFT, padx=(3, 3), pady=2)
-    #             delete_button.pack(side=tk.LEFT, padx=(3, 6), pady=2)
-
-    #             default_button.bind("<Enter>", on_enter)
-    #             default_button.bind("<Leave>", on_leave)
-    #             update_button.bind("<Enter>", on_enter)
-    #             update_button.bind("<Leave>", on_leave)
-    #             delete_button.bind("<Enter>", on_enter)
-    #             delete_button.bind("<Leave>", on_leave)
-    #             action_frame.grid(row=row_index + 1, column=1, sticky="nsew", padx=(0, 1))
-
-    #     except (FileNotFoundError, json.JSONDecodeError) as e:
-    #         messagebox.showerror("Error", f"Failed to load data: {e}")
-    #         self.show_no_data()
-    
     def show_no_data(self):
         """Show 'No Data' message in the table if no data is available."""
-        # if not self.table_frame.winfo_children():
-        # no_data_label = tk.Label(self.table_frame, text="No Data", font=('Segoe UI', 10), bg='#eaebec', anchor='w')
-        # no_data_label.grid(row=1, column=0, columnspan=len(self.headers), sticky="nsew", padx=20, pady=10)
         data_label = tk.Label(
             self.list_frame,
             padx=10,
@@ -243,6 +191,7 @@ class DevicesContent:
             font=('Segoe UI', 10),
             bg='white',
             anchor='w',
+            fg='black'
         )
         data_label.pack(fill=tk.X)
 
@@ -276,21 +225,6 @@ class DevicesContent:
                             else:
                                 btn.config(state=tk.NORMAL)
 
-        # for widget in self.table_frame.winfo_children():
-        #     if isinstance(widget, tk.Label):
-        #         address_label = widget.cget("text") # Get the address from the first child
-        #         if address == address_label:
-        #             widget.config(text=address_label+' (default)') # Add default suffix only the selected Default button
-        #         else:
-        #             if address_label.endswith(' (default)'):
-        #                 widget.config(text=address_label.replace(' (default)', ''))
-        #     if isinstance(widget, tk.Frame):
-        #         for btn in widget.winfo_children():
-        #             if btn.cget("text") == "Default" and address == address_label:
-        #                 btn.config(state=tk.DISABLED)  # Disable only the selected Default button
-        #             else:
-        #                 btn.config(state=tk.NORMAL)
-    
     def open_dialog(self, address=None):
         """Open dialog for creating or updating an entry."""
         # Create a new top-level window for the dialog
@@ -303,12 +237,25 @@ class DevicesContent:
         # Center the dialog on the parent window
         self.center_dialog(dialog)
 
-        address_label = tk.Label(dialog, text="IP Address", font=('Segoe UI', 10), bg='white')
+        address_label = tk.Label(
+            dialog,
+            text="IP Address",
+            font=('Segoe UI', 10),
+            bg='white',
+            fg='black'
+        )
         address_label.pack(pady=(10, 0), anchor='w')
+        
         address_frame = tk.Frame(dialog, highlightthickness=1, bg='white')
         address_frame.config(highlightbackground='darkgray', highlightcolor='darkgray')
         address_frame.pack(fill=tk.X)
-        address_entry = tk.Entry(address_frame, font=('Segoe UI', 10), relief=tk.FLAT)
+
+        address_entry = tk.Entry(
+            address_frame,
+            font=('Segoe UI', 10),
+            relief=tk.FLAT,
+            highlightthickness=0
+        )
         address_entry.pack(padx=5, pady=5, fill=tk.X)
 
         # Populate field if updating
@@ -320,12 +267,32 @@ class DevicesContent:
         button_frame.grid_columnconfigure(0, weight=1)
         button_frame.grid_columnconfigure(1, weight=1)
 
-        submit_button = tk.Button(button_frame, padx=10, pady=5, bg='lightgray', font=('Segoe UI', 10), text="Submit", command=lambda: self.submit(address_entry.get(), dialog, address), relief=tk.FLAT)
+        submit_button = tk.Button(
+            button_frame,
+            padx=10,
+            pady=5,
+            bg='lightgray',
+            font=('Segoe UI', 10),
+            text="Submit",
+            command=lambda: self.submit(address_entry.get(), dialog, address),
+            relief=tk.FLAT,
+            fg='black'
+        )
         submit_button.grid(padx=(0, 5), row=0, column=0, sticky='ew')
         submit_button.bind("<Enter>", on_enter)
         submit_button.bind("<Leave>", on_leave)
         
-        cancel_button = tk.Button(button_frame, padx=10, pady=5, bg='lightgray', font=('Segoe UI', 10), text="Cancel", command=dialog.destroy, relief=tk.FLAT)
+        cancel_button = tk.Button(
+            button_frame,
+            padx=10,
+            pady=5,
+            bg='lightgray',
+            font=('Segoe UI', 10),
+            text="Cancel",
+            command=dialog.destroy,
+            relief=tk.FLAT,
+            fg='black'
+        )
         cancel_button.grid(padx=(5, 0), row=0, column=1, sticky='ew')
         cancel_button.bind("<Enter>", on_enter)
         cancel_button.bind("<Leave>", on_leave)

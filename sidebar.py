@@ -28,10 +28,10 @@ class Sidebar:
         self.sidebar_frame.pack(side=tk.LEFT, fill=tk.Y)
         self.sidebar_frame.pack_propagate(False)  # Prevent the frame from resizing to fit its contents
         
-        # Sidebar device button
+        # Sidebar scale button
         self.create_button("Scale", self.scale_icon, self.show_scale, True)
 
-        self.menu_label = tk.Label(self.sidebar_frame, padx=10, pady=10, font=('Segoe UI', 10, 'bold'), text='Settings', bg='lightgray', anchor='w').pack(fill=tk.X)
+        self.menu_label = tk.Label(self.sidebar_frame, padx=10, pady=10, font=('Segoe UI', 10, 'bold'), text='Settings', bg='lightgray', fg='black', anchor='w').pack(fill=tk.X)
 
         # Sidebar buttons
         self.create_button("Part Standard", self.standard_icon, self.show_standard)
@@ -62,6 +62,9 @@ class Sidebar:
             relief=tk.FLAT,
             bg='lightgray',
             anchor='w',
+            bd=0,
+            borderwidth=0,
+            highlightthickness=0
         )
         button.pack(fill=tk.X, pady=(24, 0) if isFirst else 0)
         button.bind("<Enter>", on_enter)

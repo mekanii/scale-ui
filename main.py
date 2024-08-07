@@ -17,6 +17,9 @@ class SettingsWindow:
         self.master.resizable(True, True)  # Allow resizing
         self.master.configure(bg='white')  # Set the background color of the main window
 
+        # Force light theme
+        self.master.tk_setPalette(background='white', foreground='black', activeBackground='lightgray', activeForeground='black')
+
         # Create sidebar
         self.sidebar = Sidebar(self.master, self.show_scale_content, self.show_standard_content, self.show_calibration_content, self.show_devices_content, self.show_about_content)
 

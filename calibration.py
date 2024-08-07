@@ -22,7 +22,7 @@ class CalibrationContent:
         r_frame.grid(row=0, pady=10, column=1, sticky='nsew')
 
         # Create and configure content label
-        self.content_label = tk.Label(l_frame, text="Calibration Setting", font=("Segoe UI", 24), anchor='w', bg='white')
+        self.content_label = tk.Label(l_frame, text="Calibration Setting", font=("Segoe UI", 24), anchor='w', bg='white', fg='black')
         self.content_label.pack(pady=10, anchor='w')
 
         self.start_icon = PhotoImage(file=os.path.join(icon_dir, "play-solid-36.png"))
@@ -38,7 +38,8 @@ class CalibrationContent:
             bg='white',
             relief=tk.FLAT,
             font=('Segoe UI', 10),
-            command=self.init_calibration
+            command=self.init_calibration,
+            fg='black'
         )
         self.start_button.pack(pady=5, fill=tk.X)
         self.start_button.bind("<Enter>", lambda e: on_enter(e, color='#f1f2f3'))
@@ -59,16 +60,16 @@ class CalibrationContent:
                     widget.destroy()
 
                 # Display initialization instructions on log_frame
-                self.log_label = tk.Label(self.log_frame, anchor='w', justify='left', text="Initialize calibration.", font=('Segoe UI', 10), bg='white')
+                self.log_label = tk.Label(self.log_frame, anchor='w', justify='left', text="Initialize calibration.", font=('Segoe UI', 10), bg='white', fg='black')
                 self.log_label.pack(fill=tk.X)
 
-                self.log_label = tk.Label(self.log_frame, anchor='w', justify='left', text="Place the load cell on a level stable surface.", font=('Segoe UI', 10), bg='white')
+                self.log_label = tk.Label(self.log_frame, anchor='w', justify='left', text="Place the load cell on a level stable surface.", font=('Segoe UI', 10), bg='white', fg='black')
                 self.log_label.pack(fill=tk.X)
 
-                self.log_label = tk.Label(self.log_frame, anchor='w', justify='left', text="Remove any load applied to the load cell.", font=('Segoe UI', 10), bg='white')
+                self.log_label = tk.Label(self.log_frame, anchor='w', justify='left', text="Remove any load applied to the load cell.", font=('Segoe UI', 10), bg='white', fg='black')
                 self.log_label.pack(fill=tk.X)
 
-                self.dot_text = tk.Label(self.log_frame, anchor='w', justify='left', text="", font=('Segoe UI', 10), bg='white')
+                self.dot_text = tk.Label(self.log_frame, anchor='w', justify='left', text="", font=('Segoe UI', 10), bg='white', fg='black')
                 self.dot_text.pack(fill=tk.X)
                 
                 # Start appending dots synchronously
@@ -86,13 +87,13 @@ class CalibrationContent:
                 # data = response_json.get('data', "")  # Get the 'data' field, default to an empty list if not found
 
                 # Update the log frame
-                self.log_label = tk.Label(self.log_frame, anchor='w', justify='left', text="Initialize complete.", font=('Segoe UI', 10), bg='white')
+                self.log_label = tk.Label(self.log_frame, anchor='w', justify='left', text="Initialize complete.", font=('Segoe UI', 10), bg='white', fg='black')
                 self.log_label.pack(fill=tk.X)
 
-                self.log_label = tk.Label(self.log_frame, anchor='w', justify='left', text="Place **Known Weight** on the loadcell.", font=('Segoe UI', 10), bg='white')
+                self.log_label = tk.Label(self.log_frame, anchor='w', justify='left', text="Place **Known Weight** on the loadcell.", font=('Segoe UI', 10), bg='white', fg='black')
                 self.log_label.pack(fill=tk.X)
 
-                self.dot_text = tk.Label(self.log_frame, anchor='w', justify='left', text="", font=('Segoe UI', 10), bg='white')
+                self.dot_text = tk.Label(self.log_frame, anchor='w', justify='left', text="", font=('Segoe UI', 10), bg='white', fg='black')
                 self.dot_text.pack(fill=tk.X)
                 
                 # Start appending dots synchronously
@@ -119,7 +120,7 @@ class CalibrationContent:
         # Center the dialog on the parent window
         self.center_dialog(dialog)
 
-        known_weight_label = tk.Label(dialog, text="IP Address", font=('Segoe UI', 10), bg='white')
+        known_weight_label = tk.Label(dialog, text="IP Address", font=('Segoe UI', 10), bg='white', fg='black')
         known_weight_label.pack(pady=(10, 0), anchor='w')
         known_weight_frame = tk.Frame(dialog, highlightthickness=1, bg='white')
         known_weight_frame.config(highlightbackground='darkgray', highlightcolor='darkgray')
@@ -132,12 +133,12 @@ class CalibrationContent:
         button_frame.grid_columnconfigure(0, weight=1)
         button_frame.grid_columnconfigure(1, weight=1)
 
-        submit_button = tk.Button(button_frame, padx=10, pady=5, bg='lightgray', font=('Segoe UI', 10), text="Submit", command=lambda: self.submit(known_weight_entry.get(), dialog), relief=tk.FLAT)
+        submit_button = tk.Button(button_frame, padx=10, pady=5, bg='lightgray', font=('Segoe UI', 10), text="Submit", command=lambda: self.submit(known_weight_entry.get(), dialog), relief=tk.FLAT, fg='black')
         submit_button.grid(padx=(0, 5), row=0, column=0, sticky='ew')
         submit_button.bind("<Enter>", on_enter)
         submit_button.bind("<Leave>", on_leave)
         
-        cancel_button = tk.Button(button_frame, padx=10, pady=5, bg='lightgray', font=('Segoe UI', 10), text="Cancel", command=lambda: [dialog.destroy(), *map(lambda child: child.destroy(), self.log_frame.winfo_children())], relief=tk.FLAT)
+        cancel_button = tk.Button(button_frame, padx=10, pady=5, bg='lightgray', font=('Segoe UI', 10), text="Cancel", command=lambda: [dialog.destroy(), *map(lambda child: child.destroy(), self.log_frame.winfo_children())], relief=tk.FLAT, fg='black')
         cancel_button.grid(padx=(5, 0), row=0, column=1, sticky='ew')
         cancel_button.bind("<Enter>", on_enter)
         cancel_button.bind("<Leave>", on_leave)
@@ -158,10 +159,10 @@ class CalibrationContent:
                 data = response_json.get('data', 0.0)
                 if response.status_code in (200, 201):
                     
-                    self.log_label = tk.Label(self.log_frame, anchor='w', justify='left', text="New calibration factor has been set to: " + str(data), font=('Segoe UI', 10), bg='white')
+                    self.log_label = tk.Label(self.log_frame, anchor='w', justify='left', text="New calibration factor has been set to: " + str(data), font=('Segoe UI', 10), bg='white', fg='black')
                     self.log_label.pack(fill=tk.X)
 
-                    self.log_label = tk.Label(self.log_frame, anchor='w', justify='left', text="Calibation complete.", font=('Segoe UI', 10), bg='white')
+                    self.log_label = tk.Label(self.log_frame, anchor='w', justify='left', text="Calibation complete.", font=('Segoe UI', 10), bg='white', fg='black')
                     self.log_label.pack(fill=tk.X)
                     
                     self.log_label.after(2000, lambda: messagebox.showinfo("Success", "Entry saved successfully!"))
