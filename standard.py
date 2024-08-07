@@ -13,7 +13,9 @@ def start_event_loop(loop):
     loop.run_forever()
 
 class StandardContent:
-    def __init__(self, parent):
+    def __init__(self, parent, tasks):
+        self.tasks = tasks
+
         current_dir = os.path.dirname(os.path.abspath(__file__))
         icon_dir = os.path.join(current_dir, "assets", "icons")
 
@@ -63,7 +65,7 @@ class StandardContent:
             bg='white',
             relief=tk.FLAT,
             font=('Segoe UI', 10),
-            command=lambda: asyncio.run_coroutine_threadsafe(self.load_data(), self.loop),
+            command=lambda: self.tasks.append(asyncio.run_coroutine_threadsafe(self.load_data(), self.loop)),
             fg='black',
             bd=0,
             borderwidth=0,
@@ -85,7 +87,7 @@ class StandardContent:
         threading.Thread(target=start_event_loop, args=(self.loop,), daemon=True).start()
 
         # Schedule the async load_data
-        # asyncio.run_coroutine_threadsafe(self.load_data(), self.loop)
+        self.tasks.append(asyncio.run_coroutine_threadsafe(self.load_data(), self.loop))
     
     async def load_data(self):
         """Fetch data from API and populate the table."""
@@ -164,7 +166,7 @@ class StandardContent:
                         padx=10,
                         pady=2,
                         text="Delete",
-                        command=lambda r=row: asyncio.run_coroutine_threadsafe(self.delete_entry(r['id']), self.loop),
+                        command=lambda r=row: self.tasks.append(asyncio.run_coroutine_threadsafe(self.load_data(), self.loop)),
                         bg='lightgray',
                         font=('Segoe UI', 10),
                         relief=tk.FLAT,
@@ -238,7 +240,12 @@ class StandardContent:
         part_name_frame = tk.Frame(dialog, highlightthickness=1, bg='white')
         part_name_frame.config(highlightbackground='darkgray', highlightcolor='darkgray')
         part_name_frame.pack(fill=tk.X)
-        part_name_entry = tk.Entry(part_name_frame, font=('Segoe UI', 10), relief=tk.FLAT)
+        part_name_entry = tk.Entry(
+            part_name_frame,
+            font=('Segoe UI', 10),
+            relief=tk.FLAT,
+            highlightthickness=0
+        )
         part_name_entry.pack(padx=5, pady=5, fill=tk.X)
 
         part_std_label = tk.Label(dialog, text="Standard Weight", font=('Segoe UI', 10), bg='white')
@@ -246,7 +253,15 @@ class StandardContent:
         part_std_frame = tk.Frame(dialog, highlightthickness=1, bg='white')
         part_std_frame.config(highlightbackground='darkgray', highlightcolor='darkgray')
         part_std_frame.pack(fill=tk.X)
-        self.part_std_entry = tk.Entry(part_std_frame, validate='key', validatecommand=vcmd, justify='right', font=('Segoe UI', 10), relief=tk.FLAT)
+        self.part_std_entry = tk.Entry(
+            part_std_frame,
+            validate='key',
+            validatecommand=vcmd,
+            justify='right',
+            font=('Segoe UI', 10),
+            relief=tk.FLAT,
+            highlightthickness=0
+        )
         self.part_std_entry.pack(padx=5, fill=tk.Y, side=tk.LEFT)
         
         tk.Button(
@@ -256,7 +271,7 @@ class StandardContent:
             bg='lightgray',
             font=('Segoe UI', 10),
             text="Get weight (gr)",
-            command=lambda: asyncio.run_coroutine_threadsafe(self.measure(), self.loop),
+            command=lambda: self.tasks.append(asyncio.run_coroutine_threadsafe(self.measure(), self.loop)),
             relief=tk.FLAT,
             fg='black',
             bd=0,
@@ -288,15 +303,17 @@ class StandardContent:
             bg='lightgray',
             font=('Segoe UI', 10),
             text="Submit",
-            command=lambda: asyncio.run_coroutine_threadsafe(
-                self.submit(
-                    part_name_entry.get(), 
-                    self.part_std_entry.get(), 
-                    unit_var.get(), 
-                    dialog, 
-                    entry
-                ),
-                self.loop
+            command=lambda: self.tasks.append(
+                asyncio.run_coroutine_threadsafe(
+                    self.submit(
+                        part_name_entry.get(), 
+                        self.part_std_entry.get(), 
+                        unit_var.get(), 
+                        dialog, 
+                        entry
+                    ),
+                    self.loop
+                )
             ),
             relief=tk.FLAT,
             fg='black',
@@ -384,7 +401,7 @@ class StandardContent:
                 
                 if response.status_code in (200, 201):
                     messagebox.showinfo("Success", "Entry saved successfully!")
-                    asyncio.run_coroutine_threadsafe(self.load_data(), self.loop)  # Reload data to reflect changes
+                    self.tasks.append(asyncio.run_coroutine_threadsafe(self.load_data(), self.loop))  # Reload data to reflect changes
                     dialog.destroy()  # Close the dialog after submission
                 else:
                     messagebox.showerror("Error", "Failed to save entry.")
@@ -404,7 +421,7 @@ class StandardContent:
 
                 if response.status_code in (200, 201):
                     messagebox.showinfo("Success", "Entry deleted successfully!")
-                    asyncio.run_coroutine_threadsafe(self.load_data(), self.loop)  # Reload data to reflect changes
+                    self.tasks.append(asyncio.run_coroutine_threadsafe(self.load_data(), self.loop))  # Reload data to reflect changes
                 else:
                     messagebox.showerror("Error", "Failed to delete entry.")
 

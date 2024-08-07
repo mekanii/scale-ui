@@ -2,7 +2,7 @@ import sys
 import os
 
 # Ensure standard library paths are prioritized
-# sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), 'module')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), 'module')))
 
 import tkinter as tk
 from tkinter import simpledialog, messagebox, PhotoImage
@@ -19,11 +19,12 @@ def start_event_loop(loop):
     loop.run_forever()
 
 class ScaleContent:
-    def __init__(self, parent):
+    def __init__(self, parent, tasks):
         pygame.mixer.init()
 
         self.last_check = None
         self.continuous_reading = False
+        self.tasks = tasks
 
         current_dir = os.path.dirname(os.path.abspath(__file__))
         self.icon_dir = os.path.join(current_dir, "assets", "icons")
@@ -53,7 +54,7 @@ class ScaleContent:
             bg='white',
             relief=tk.FLAT,
             font=('Segoe UI', 10),
-            command=lambda: asyncio.run_coroutine_threadsafe(self.load_data(), self.loop),
+            command=lambda: self.tasks.append(asyncio.run_coroutine_threadsafe(self.load_data(), self.loop)),
             fg='black',
             bd=0,
             borderwidth=0,
@@ -68,12 +69,12 @@ class ScaleContent:
 
         self.loop = asyncio.new_event_loop()
         threading.Thread(target=start_event_loop, args=(self.loop,), daemon=True).start()
-        # asyncio.run_coroutine_threadsafe(self.load_data(), self.loop)
+        self.tasks.append(asyncio.run_coroutine_threadsafe(self.load_data(), self.loop))
 
     async def load_data(self):
         try:
             with open('config.json', 'r') as file:
-                self.disable_buttons()
+                self.reload_button.config(state='disabled')
                 json_data = json.load(file)
                 base_api_url = json_data.get('default', None)
                 response = await asyncio.to_thread(requests.get, f"http://{base_api_url}/parts")
@@ -126,7 +127,7 @@ class ScaleContent:
                     bg='white',
                     relief=tk.FLAT,
                     font=('Segoe UI', 10),
-                    command=lambda: asyncio.run_coroutine_threadsafe(self.start(self.dropdown.get(), data) if self.connect_button['text'] == 'Connect' else self.stop(), self.loop),
+                    command=lambda: self.tasks.append(asyncio.run_coroutine_threadsafe(self.start(self.dropdown.get(), data) if self.connect_button['text'] == 'Connect' else self.stop(), self.loop)),
                     fg='black',
                     bd=0,
                     borderwidth=0,
@@ -146,7 +147,7 @@ class ScaleContent:
                     bg='white',
                     relief=tk.FLAT,
                     font=('Segoe UI', 10),
-                    command=lambda: asyncio.run_coroutine_threadsafe(self.tare(), self.loop),
+                    command=lambda: self.tasks.append(asyncio.run_coroutine_threadsafe(self.tare(), self.loop)),
                     fg='black',
                     bd=0,
                     borderwidth=0,
@@ -181,7 +182,7 @@ class ScaleContent:
                 )
                 self.status_label.pack(fill=tk.X)
 
-                self.enable_buttons()
+                self.reload_button.config(state='normal')
                 self.tare_button.config(state='disabled')
 
         except requests.RequestException as e:
@@ -215,12 +216,12 @@ class ScaleContent:
                                     weight = f"{max(0, int(data['weight']))} {part['unit']}"
                                 if data['check'] == 1 and data['check'] != self.last_check:
                                     print(data)
-                                    asyncio.run_coroutine_threadsafe(self.play_tone("OK"), self.loop)
+                                    self.tasks.append(asyncio.run_coroutine_threadsafe(self.play_tone("OK"), self.loop))
                                     self.status_label.config(fg='green')
                                     self.status_label.config(text="QTY GOOD")
                                 elif data['check'] == 2 and data['check'] != self.last_check:
                                     print(data)
-                                    asyncio.run_coroutine_threadsafe(self.play_tone("NG"), self.loop)
+                                    self.tasks.append(asyncio.run_coroutine_threadsafe(self.play_tone("NG"), self.loop))
                                     self.status_label.config(fg='red')
                                     self.status_label.config(text="NOT GOOD")
                                 elif data['check'] == 0 and data['check'] != self.last_check:
@@ -245,7 +246,8 @@ class ScaleContent:
             with open('config.json', 'r') as file:
                 self.tare_button.config(state='disabled')
                 self.connect_button.config(state='disabled')
-                self.disable_buttons()
+                self.reload_button.config(state='disabled')
+
                 last_continuous_reading = self.continuous_reading
                 if self.continuous_reading:
                     self.continuous_reading = False
@@ -255,9 +257,10 @@ class ScaleContent:
                 response.raise_for_status()
                 response_json = response.json()
                 data = response_json.get('data', {})
+
                 self.connect_button.config(state='normal')
                 self.tare_button.config(state='normal')
-                self.enable_buttons()
+                self.reload_button.config(state='normal')
                 self.continuous_reading = last_continuous_reading
         except requests.RequestException as e:
             messagebox.showerror("Error", f"Failed to load data: {e}")

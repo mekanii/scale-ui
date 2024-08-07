@@ -7,7 +7,9 @@ import os
 import json
 
 class CalibrationContent:
-    def __init__(self, parent):
+    def __init__(self, parent, tasks):
+        self.tasks = tasks
+
         current_dir = os.path.dirname(os.path.abspath(__file__))
         icon_dir = os.path.join(current_dir, "assets", "icons")
 
@@ -127,7 +129,12 @@ class CalibrationContent:
         known_weight_frame = tk.Frame(dialog, highlightthickness=1, bg='white')
         known_weight_frame.config(highlightbackground='darkgray', highlightcolor='darkgray')
         known_weight_frame.pack(fill=tk.X)
-        known_weight_entry = tk.Entry(known_weight_frame, font=('Segoe UI', 10), relief=tk.FLAT)
+        known_weight_entry = tk.Entry(
+            known_weight_frame,
+            font=('Segoe UI', 10),
+            relief=tk.FLAT,
+            highlightthickness=0
+        )
         known_weight_entry.pack(padx=5, pady=5, fill=tk.X)
 
         button_frame = tk.Frame(dialog, bg='white')

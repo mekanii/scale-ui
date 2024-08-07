@@ -29,29 +29,34 @@ class SettingsWindow:
 
         # Initialize content
         self.current_content = None
+        self.tasks = []
         self.show_scale_content()  # Show default content
 
     def show_scale_content(self):
         self.clear_content()  # Clear previous content
-        self.current_content = ScaleContent(self.content_frame)
+        self.current_content = ScaleContent(self.content_frame, self.tasks)
 
     def show_standard_content(self):
         self.clear_content()  # Clear previous content
-        self.current_content = StandardContent(self.content_frame)
+        self.current_content = StandardContent(self.content_frame, self.tasks)
 
     def show_calibration_content(self):
         self.clear_content()  # Clear previous content
-        self.current_content = CalibrationContent(self.content_frame)
+        self.current_content = CalibrationContent(self.content_frame, self.tasks)
 
     def show_devices_content(self):
         self.clear_content()  # Clear previous content
-        self.current_content = DevicesContent(self.content_frame)
+        self.current_content = DevicesContent(self.content_frame, self.tasks)
 
     def show_about_content(self):
         self.clear_content()  # Clear previous content
-        self.current_content = AboutContent(self.content_frame)
+        self.current_content = AboutContent(self.content_frame, self.tasks)
 
     def clear_content(self):
+        # Cancel all running tasks
+        for task in self.tasks:
+            task.cancel()
+        self.tasks.clear()
         # Clear the content frame
         for widget in self.content_frame.winfo_children():
             widget.destroy()

@@ -6,7 +6,9 @@ import os
 import json
 
 class DevicesContent:
-    def __init__(self, parent):
+    def __init__(self, parent, tasks):
+        self.tasks = tasks
+        
         current_dir = os.path.dirname(os.path.abspath(__file__))
         icon_dir = os.path.join(current_dir, "assets", "icons")
 

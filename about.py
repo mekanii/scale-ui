@@ -1,7 +1,9 @@
 import tkinter as tk
 
 class AboutContent:
-    def __init__(self, parent):
+    def __init__(self, parent, tasks):
+        self.tasks = tasks
+        
         self.frame = tk.Frame(parent, bg='white')
         self.frame.pack(pady=10, fill=tk.X)
 
