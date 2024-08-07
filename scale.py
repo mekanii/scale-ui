@@ -2,7 +2,7 @@ import sys
 import os
 
 # Ensure standard library paths are prioritized
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), 'module')))
+# sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), 'module')))
 
 import tkinter as tk
 from tkinter import simpledialog, messagebox, PhotoImage
